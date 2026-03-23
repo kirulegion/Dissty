@@ -23,7 +23,7 @@ func toModelAccount(d *domain.Account) AccountModel {
 	return AccountModel{
 		AccountID:  d.AccountID,
 		UserID:     d.UserID,
-		IsComplete: d.IsComeplete,
+		IsComplete: d.IsComplete,
 		CreatedAt:  d.CreatedAt,
 		UpdatedAt:  d.UpdatedAt,
 	}
@@ -33,7 +33,7 @@ func toDomainAccount(m AccountModel) *domain.Account {
 	return &domain.Account{
 		AccountID:  m.AccountID,
 		UserID:     m.UserID,
-		IsComeplete: m.IsComplete,
+		IsComplete: m.IsComplete,
 		CreatedAt:  m.CreatedAt,
 		UpdatedAt:  m.UpdatedAt,
 	}
@@ -63,7 +63,7 @@ func toDomainIdentityProvider(m IdentityProviderModel) *domain.IdentityProvider 
 	return &domain.IdentityProvider{
 		ID:         m.ID,
 		AccountID:  m.AccountID,
-		Provider:   m.Provider,
+		Provider:   domain.Provider(m.Provider),
 		ProviderID: m.ProviderID,
 		Identifier: m.Identifier,
 		CreatedAt:  m.CreatedAt,
@@ -75,7 +75,7 @@ func toModelIdentityProvider(d *domain.IdentityProvider) IdentityProviderModel {
 	return IdentityProviderModel{
 		ID:         d.ID,
 		AccountID:  d.AccountID,
-		Provider:   d.Provider,
+		Provider:   string(d.Provider),
 		ProviderID: d.ProviderID,
 		Identifier: d.Identifier,
 		CreatedAt:  d.CreatedAt,

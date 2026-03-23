@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "github.com/kirulegion/Dissty/services/auth-service/proto";
+
+service AuthService {
+  rpc AuthenticateWithOAuth (AuthenticateWithOAuthRequest) returns (TokenResponse);
+  rpc CompleteRegistration  (CompleteRegistrationRequest)  returns (TokenResponse);
+  rpc RequestOTP            (RequestOTPRequest)            returns (RequestOTPResponse);
+  rpc VerifyOTP             (VerifyOTPRequest)             returns (TokenResponse);
+  rpc LinkProvider          (LinkProviderRequest)          returns (LinkProviderResponse);
+  rpc GetLinkedProviders    (GetLinkedProvidersRequest)    returns (GetLinkedProvidersResponse);
+  rpc ValidateToken         (ValidateTokenRequest)         returns (ValidateTokenResponse);
+}
+
+// Shared token response
+message TokenResponse {
+  string token = 1;
+}
+
+// AuthenticateWithOAuth
+message AuthenticateWithOAuthRequest {
+  string provider    = 1;
+  string provider_id = 2;
+  string identifier  = 3;
+  string display_name = 4;
+  string avatar_url  = 5;
+}
+
+// CompleteRegistration
+message CompleteRegistrationRequest {
+  string account_id   = 1;
+  string username     = 2;
+  string display_name = 3;
+}
+
+// RequestOTP
+message RequestOTPRequest {
+  string provider    = 1;
+  string identifier  = 2;
+}
+
+message RequestOTPResponse {
+  bool success = 1;
+}
+
+// VerifyOTP
+message VerifyOTPRequest {
+  string provider   = 1;
+  string identifier = 2;
+  string code       = 3;
+}
+
+// LinkProvider
+message LinkProviderRequest {
+  string account_id  = 1;
+  string provider    = 2;
+  string identifier  = 3;
+  string provider_id = 4;
+}
+
+message LinkProviderResponse {
+  bool success = 1;
+}
+
+// GetLinkedProviders
+message GetLinkedProvidersRequest {
+  string account_id = 1;
+}
+
+message IdentityProvider {
+  string id          = 1;
+  string account_id  = 2;
+  string provider    = 3;
+  string provider_id = 4;
+  string identifier  = 5;
+  string created_at  = 6;
+  string last_used_at = 7;
+}
+
+message GetLinkedProvidersResponse {
+  repeated IdentityProvider providers = 1;
+}
+
+// ValidateToken
+message ValidateTokenRequest {
+  string token = 1;
+}
+
+message ValidateTokenResponse {
+  string account_id = 1;
+  string user_id    = 2;
+  string status     = 3;
+  bool   valid      = 4;
+}

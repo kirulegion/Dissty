@@ -82,7 +82,7 @@ func (s *authService) VerifyOTP(ctx context.Context, provider domain.Provider, i
 			return "", err
 		}
 
-		return "INCOMPLETE_JWT", nil
+		return s.tokenSvc.GenerateIncompleteToken(newAccount.AccountID)
 
 	}
 
@@ -95,6 +95,13 @@ func (s *authService) VerifyOTP(ctx context.Context, provider domain.Provider, i
 		return "", err
 	}
 
-	return "JWT", nil
-
+	// returning user — check IsComplete first
+	account, err := s.accountRepo.FindAccountByID(ctx, existing.AccountID)
+	if err != nil {
+		return "", err
+	}
+	if !account.IsComplete {
+		return s.tokenSvc.GenerateIncompleteToken(account.AccountID)
+	}
+	return s.tokenSvc.GenerateCompleteToken(account.AccountID, *account.UserID)
 }

@@ -6,25 +6,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/kirulegion/Dissty/services/auth-service/internal/cache"
 	"github.com/kirulegion/Dissty/services/auth-service/internal/domain"
-	"github.com/kirulegion/Dissty/services/auth-service/internal/repository"
-	"github.com/resend/resend-go/v2"
+	userpb "github.com/kirulegion/Dissty/services/user-service/proto"
 )
 
-func NewAuthService(account repository.AuthRepository, provider repository.IdentityProviderRepository, userClient userpb.UserServiceClient, resendClient *resend.Client,
-	otpCache *cache.OTPCache) AuthService {
-	return &authService{
-		accountRepo:  account,
-		providerRepo: provider,
-		userClient:   userClient,
-		resendClient: resendClient,
-		otpCache:     otpCache,
-	}
-}
-
-func (s *authService) AuthenticateWithOAuth(ctx context.Context, provider, providerID, identifier, displayname, avatarurl string) (string, error) {
-	exist, err := s.providerRepo.FindProviderByNameAndID(ctx, provider, providerID)
+func (s *authService) AuthenticateWithOAuth(ctx context.Context, provider domain.Provider, providerID, identifier, displayname, avatarurl string) (string, error) {
+	exist, err := s.providerRepo.FindProviderByNameAndID(ctx, string(provider), providerID)
 
 	if errors.Is(err, domain.ErrAccountNotFound) {
 		//Since we did not found any provider linked to this email we are going to actually register the user.
@@ -57,13 +44,23 @@ func (s *authService) AuthenticateWithOAuth(ctx context.Context, provider, provi
 			return "", err
 		}
 
-		return "INCOMPLETE_JWT", nil
+		return s.tokenSvc.GenerateIncompleteToken(newAccount.AccountID)
+	}
+	if err != nil {
+		return "", err
 	}
 	err = s.providerRepo.UpdateLastUsed(ctx, exist.ID)
 	if err != nil {
 		return "", err
 	}
-	return "JWT", nil
+	account, err := s.accountRepo.FindAccountByID(ctx, exist.AccountID)
+	if err != nil {
+		return "", err
+	}
+	if !account.IsComplete {
+		return s.tokenSvc.GenerateIncompleteToken(account.AccountID)
+	}
+	return s.tokenSvc.GenerateCompleteToken(account.AccountID, *account.UserID)
 }
 
 func (s *authService) CompleteRegistration(ctx context.Context, accountID uuid.UUID, username, displayname string) (string, error) {
@@ -103,8 +100,5 @@ func (s *authService) CompleteRegistration(ctx context.Context, accountID uuid.U
 	if err := s.accountRepo.UpdateAccount(ctx, account); err != nil {
 		return "", err
 	}
-	return "COMPLETE_JWT", nil
+	return s.tokenSvc.GenerateCompleteToken(account.AccountID, *account.UserID)
 }
-
-
-

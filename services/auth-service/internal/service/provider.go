@@ -9,8 +9,8 @@ import (
 	"github.com/kirulegion/Dissty/services/auth-service/internal/domain"
 )
 
-func (s *authService) LinkProvider(ctx context.Context, accountID uuid.UUID, provider, identifier, providerID string) error {
-	existing, err := s.providerRepo.FindProviderByNameAndID(ctx, provider, providerID)
+func (s *authService) LinkProvider(ctx context.Context, accountID uuid.UUID, provider domain.Provider, identifier, providerID string) error {
+	existing, err := s.providerRepo.FindProviderByNameAndID(ctx, string(provider), providerID)
 	if existing != nil {
 		return domain.ErrProviderLinkExists
 	}
