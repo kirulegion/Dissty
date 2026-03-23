@@ -17,6 +17,7 @@ type AuthRepository interface {
 	Create(ctx context.Context, account *domain.Account) error
 	FindAccountByID(ctx context.Context, id uuid.UUID) (*domain.Account, error)
 	FindAccountByUserID(ctx context.Context, id uuid.UUID) (*domain.Account, error)
+	UpdateAccount(ctx context.Context, account *domain.Account) error
 }
 
 /*
@@ -70,6 +71,11 @@ func (ap *postgresAccountRepository) FindAccountByUserID(ctx context.Context, us
 	return toDomainAccount(model), nil
 }
 
+func (ap *postgresAccountRepository) UpdateAccount(ctx context.Context, account *domain.Account) error {
+	model := toModelAccount(account)
+	return ap.db.WithContext(ctx).Save(&model).Error
+}
+
 /*
 
 
@@ -80,7 +86,7 @@ func (ap *postgresAccountRepository) FindAccountByUserID(ctx context.Context, us
 // INFO: Where as the IdentityProviderRepository handles the IdentityProvider side of the deal.
 type IdentityProviderRepository interface {
 	Create(ctx context.Context, provider *domain.IdentityProvider) error
-	FindProviderByName(ctx context.Context, provider, identifier string) (*domain.IdentityProvider, error)
+	FindProviderByNameAndID(ctx context.Context, provider, providerID string) (*domain.IdentityProvider, error)
 	FindAllProvidersByAccountID(ctx context.Context, accountID uuid.UUID) ([]*domain.IdentityProvider, error)
 	UpdateLastUsed(ctx context.Context, id uuid.UUID) error
 }
@@ -107,9 +113,9 @@ func (ap *postgresIdentityProviderRepository) Create(ctx context.Context, provid
 /*
 NOTE: Finding the Provider using identifier & provider it will be needed when we are signing an user and we need to check weather this user has has already linked his or her google account or not.
 */
-func (ap *postgresIdentityProviderRepository) FindProviderByName(ctx context.Context, provider, identifier string) (*domain.IdentityProvider, error) {
+func (ap *postgresIdentityProviderRepository) FindProviderByNameAndID(ctx context.Context, provider, providerID string) (*domain.IdentityProvider, error) {
 	var model IdentityProviderModel
-	err := ap.db.WithContext(ctx).Where("provider = ?", provider).Where("identifier  = ?", identifier).First(&model).Error
+	err := ap.db.WithContext(ctx).Where("provider = ?", provider).Where("provider_id = ?", providerID).First(&model).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, domain.ErrAccountNotFound
 	}
@@ -141,7 +147,7 @@ func (ap *postgresIdentityProviderRepository) FindAllProvidersByAccountID(ctx co
 }
 
 /*
-IDEA:
+IDEA: The id -> providerID here , to update the lastused time.
 */
 func (ap *postgresIdentityProviderRepository) UpdateLastUsed(ctx context.Context, id uuid.UUID) error {
 	return ap.db.WithContext(ctx).
@@ -149,3 +155,11 @@ func (ap *postgresIdentityProviderRepository) UpdateLastUsed(ctx context.Context
 		Where("id = ?", id).
 		Update("last_used_at", time.Now()).Error
 }
+
+
+
+
+
+
+
+

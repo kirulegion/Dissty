@@ -8,7 +8,8 @@ import (
 
 type Account struct {
 	AccountID uuid.UUID
-	UserID    uuid.UUID
+	UserID    *uuid.UUID
+	IsComplete bool 
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -16,7 +17,7 @@ type Account struct {
 type IdentityProvider struct {
 	ID           uuid.UUID
 	AccountID    uuid.UUID
-	Provider     string
+	Provider     Provider
 	ProviderID   string
 	Identifier   string
 	CreatedAt    time.Time

@@ -8,10 +8,11 @@ import (
 )
 
 type AccountModel struct {
-	AccountID uuid.UUID `gorm:"type:uuid;primaryKey"`
-	UserID    uuid.UUID `gorm:"type:uuid;not null"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	AccountID  uuid.UUID  `gorm:"type:uuid;primaryKey"`
+	UserID     *uuid.UUID `gorm:"type:uuid"`
+	IsComplete bool       `gorm:"default:false;not null"`
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }
 
 func (AccountModel) TableName() string {
@@ -20,19 +21,21 @@ func (AccountModel) TableName() string {
 
 func toModelAccount(d *domain.Account) AccountModel {
 	return AccountModel{
-		AccountID: d.AccountID,
-		UserID:    d.UserID,
-		CreatedAt: d.CreatedAt,
-		UpdatedAt: d.UpdatedAt,
+		AccountID:  d.AccountID,
+		UserID:     d.UserID,
+		IsComplete: d.IsComeplete,
+		CreatedAt:  d.CreatedAt,
+		UpdatedAt:  d.UpdatedAt,
 	}
 }
 
 func toDomainAccount(m AccountModel) *domain.Account {
 	return &domain.Account{
-		AccountID: m.AccountID,
-		UserID:    m.UserID,
-		CreatedAt: m.CreatedAt,
-		UpdatedAt: m.UpdatedAt,
+		AccountID:  m.AccountID,
+		UserID:     m.UserID,
+		IsComeplete: m.IsComplete,
+		CreatedAt:  m.CreatedAt,
+		UpdatedAt:  m.UpdatedAt,
 	}
 }
 
