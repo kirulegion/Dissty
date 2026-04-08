@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package permission;
+
+option go_package = "github.com/kirulegion/Dissty/services/permission-service/proto/permissionpb";
+
+service PermissionService {
+    rpc CheckPermission(CheckPermissionRequest) returns (CheckPermissionResponse);
+}
+
+message CheckPermissionRequest {
+    string user_id      = 1;
+    string role         = 2;
+    string action       = 3;
+    string context_type = 4;
+    string context_id   = 5;
+}
+
+message CheckPermissionResponse {
+    bool   allowed = 1;
+    string reason  = 2;
+}
